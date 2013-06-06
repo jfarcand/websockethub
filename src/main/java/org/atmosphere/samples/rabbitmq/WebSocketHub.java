@@ -15,29 +15,41 @@
  */
 package org.atmosphere.samples.rabbitmq;
 
+import org.atmosphere.cache.UUIDBroadcasterCache;
 import org.atmosphere.config.service.WebSocketHandlerService;
 import org.atmosphere.cpr.Broadcaster;
+import org.atmosphere.interceptor.AtmosphereResourceStateRecovery;
+import org.atmosphere.interceptor.HeartbeatInterceptor;
 import org.atmosphere.websocket.WebSocket;
 import org.atmosphere.websocket.WebSocketHandler;
 import org.atmosphere.websocket.WebSocketProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-@WebSocketHandlerService(path = "/{email}")
-public class WebSocketHub implements WebSocketHandler{
+@WebSocketHandlerService(
+        broadcasterCache = UUIDBroadcasterCache.class,
+        interceptors = {AtmosphereResourceStateRecovery.class, HeartbeatInterceptor.class},
+        path = "/{email}")
+public class WebSocketHub implements WebSocketHandler {
+
+    private final Logger logger = LoggerFactory.getLogger(WebSocketHub.class);
+
     @Override
     public void onByteMessage(WebSocket webSocket, byte[] data, int offset, int length) throws IOException {
-
     }
 
     @Override
-    public void onTextMessage(WebSocket webSocket, String data) throws IOException {
-
-         Broadcaster userId = webSocket.resource().getBroadcaster();
+    public void onTextMessage(final WebSocket webSocket, String data) throws IOException {
+        // The Broadcaster.getID() will return the email address.
+        Broadcaster userId = webSocket.resource().getBroadcaster();
+        logger.debug("Using Broadcaster {}", userId.getID());
+        userId.broadcast("Echoing data " + data);
     }
 
     @Override
-    public void onOpen(WebSocket webSocket) throws IOException {
+    public void onOpen(final WebSocket webSocket) throws IOException {
     }
 
     @Override
@@ -47,6 +59,6 @@ public class WebSocketHub implements WebSocketHandler{
 
     @Override
     public void onError(WebSocket webSocket, WebSocketProcessor.WebSocketException t) {
-
+        logger.error("", t);
     }
 }
