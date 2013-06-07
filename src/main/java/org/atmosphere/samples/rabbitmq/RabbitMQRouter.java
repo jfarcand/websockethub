@@ -218,6 +218,10 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
         }
     }
 
+    public void unregister(String routingKey) {
+        broadcasters.remove(routingKey);
+    }
+
     public static final class Message {
 
         public String routingKey;

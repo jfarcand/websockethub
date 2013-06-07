@@ -21,7 +21,7 @@ import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.interceptor.AtmosphereResourceStateRecovery;
 import org.atmosphere.interceptor.HeartbeatInterceptor;
 import org.atmosphere.websocket.WebSocket;
-import org.atmosphere.websocket.WebSocketHandler;
+import org.atmosphere.websocket.WebSocketHandlerAdapter;
 import org.atmosphere.websocket.WebSocketProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,15 +32,11 @@ import java.io.IOException;
         broadcasterCache = UUIDBroadcasterCache.class,
         interceptors = {AtmosphereResourceStateRecovery.class, HeartbeatInterceptor.class},
         path = "/{email}")
-public class WebSocketHub implements WebSocketHandler {
+public class WebSocketHub extends WebSocketHandlerAdapter {
 
     private final Logger logger = LoggerFactory.getLogger(WebSocketHub.class);
     private RabbitMQRouter router;
     private String routingKey;
-
-    @Override
-    public void onByteMessage(WebSocket webSocket, byte[] data, int offset, int length) throws IOException {
-    }
 
     @Override
     public void onTextMessage(final WebSocket webSocket, String data) throws IOException {
@@ -56,7 +52,9 @@ public class WebSocketHub implements WebSocketHandler {
 
     @Override
     public void onClose(WebSocket webSocket) {
-
+        if (router != null) {
+            router.unregister(routingKey);
+        }
     }
 
     @Override
