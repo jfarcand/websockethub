@@ -26,6 +26,7 @@ import org.atmosphere.cpr.AtmosphereConfig;
 import org.atmosphere.cpr.Broadcaster;
 import org.atmosphere.util.DefaultEndpointMapper;
 import org.atmosphere.util.EndpointMapper;
+import org.atmosphere.util.ExecutorsFactory;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,14 +47,14 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
     public static final String PARAM_VHOST = RabbitMQRouter.class.getName() + ".vhost";
     public static final String PARAM_PORT = RabbitMQRouter.class.getName() + ".port";
 
-    private String queueName;
-    private String consumerTag;
-    private final String exchangeName;
     private final ConnectionFactory connectionFactory;
     private final Connection connection;
     private final Channel channel;
-    private final String exchange;
-    private final String keyName = "atmosphere.all";
+    private String exchange;
+    private String amqRoutingKey = "atmosphere.all";
+    private String queueName;
+    private String consumerTag;
+    private String exchangeName;
 
     private final EndpointMapper<Broadcaster> mapper = new DefaultEndpointMapper<Broadcaster>();
     private final Map<String, Broadcaster> broadcasters = new ConcurrentHashMap<String, Broadcaster>();
@@ -104,7 +105,7 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
             connectionFactory.setPort(Integer.valueOf(port));
 
             logger.debug("Try to acquire a connection ...");
-            connection = connectionFactory.newConnection();
+            connection = connectionFactory.newConnection(ExecutorsFactory.getMessageDispatcher(config, "connectionFactory"));
             channel = connection.createChannel();
 
             logger.debug("Topic creation '{}'...", exchangeName);
@@ -124,15 +125,18 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
         return broadcaster.getID();
     }
 
-
-    public RabbitMQRouter deliver(String routingKey, String message) {
+    public RabbitMQRouter deliver(String amqRoutingKey, String broadcasterRoutingKey, String message) {
         try {
-            channel.basicPublish(exchangeName, keyName,
-                    MessageProperties.PERSISTENT_TEXT_PLAIN, oMapper.writeValueAsBytes(new Message(routingKey, message)));
+            channel.basicPublish(exchangeName, amqRoutingKey,
+                    MessageProperties.PERSISTENT_TEXT_PLAIN, oMapper.writeValueAsBytes(new Message(broadcasterRoutingKey, message)));
         } catch (IOException e) {
             logger.warn("Failed to send message over RabbitMQ", e);
         }
         return this;
+    }
+
+    public RabbitMQRouter deliver(String broadcasterRoutingKey, String message) {
+        return deliver(amqRoutingKey, broadcasterRoutingKey, message);
     }
 
     private void routeIn() {
@@ -145,15 +149,15 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
 
             if (queueName != null) {
                 logger.debug("Delete queue {}", queueName);
-                channel.queueUnbind(queueName, exchangeName, keyName);
+                channel.queueUnbind(queueName, exchangeName, amqRoutingKey);
                 channel.queueDelete(queueName);
                 queueName = null;
             }
 
             queueName = channel.queueDeclare().getQueue();
-            channel.queueBind(queueName, exchangeName, keyName);
+            channel.queueBind(queueName, exchangeName, amqRoutingKey);
 
-            logger.info("Create AMQP consumer on queue {}, for routing key {}", queueName, keyName);
+            logger.info("Create AMQP consumer on queue {}, for routing key {}", queueName, amqRoutingKey);
 
             DefaultConsumer queueConsumer = new DefaultConsumer(channel) {
                 @Override
@@ -164,7 +168,7 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
                         throws IOException {
 
                     // Not for us.
-                    if (!envelope.getRoutingKey().equalsIgnoreCase(keyName)) {
+                    if (!envelope.getRoutingKey().equalsIgnoreCase(amqRoutingKey)) {
                         logger.debug("Skipping message");
                         return;
                     }
@@ -187,7 +191,7 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
             };
 
             consumerTag = channel.basicConsume(queueName, true, queueConsumer);
-            logger.info("Consumer " + consumerTag + " for queue {}, on routing key {}", queueName, keyName);
+            logger.info("Consumer " + consumerTag + " for queue {}, on routing key {}", queueName, amqRoutingKey);
 
         } catch (Throwable ex) {
             String msg = "Unable to initialize RabbitMQBroadcaster";
@@ -218,8 +222,34 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
         }
     }
 
-    public void unregister(String routingKey) {
-        broadcasters.remove(routingKey);
+    public void unregister(String broadcasterRoutingKey) {
+        broadcasters.remove(broadcasterRoutingKey);
+    }
+
+
+    public RabbitMQRouter exchangeName(String exchangeName) {
+        this.exchangeName = exchangeName;
+        return this;
+    }
+
+    public RabbitMQRouter consumerTag(String consumerTag) {
+        this.consumerTag = consumerTag;
+        return this;
+    }
+
+    public RabbitMQRouter queueName(String queueName) {
+        this.queueName = queueName;
+        return this;
+    }
+
+    public RabbitMQRouter exchange(String exchange) {
+        this.exchange = exchange;
+        return this;
+    }
+
+    public RabbitMQRouter amqRoutingKey(String amqRoutingKey) {
+        this.amqRoutingKey = amqRoutingKey;
+        return this;
     }
 
     public static final class Message {
