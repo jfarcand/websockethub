@@ -17,7 +17,7 @@ package org.atmosphere.samples.rabbitmq;
 
 import org.atmosphere.cache.UUIDBroadcasterCache;
 import org.atmosphere.config.service.WebSocketHandlerService;
-import org.atmosphere.cpr.Broadcaster;
+import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.interceptor.AtmosphereResourceStateRecovery;
 import org.atmosphere.interceptor.HeartbeatInterceptor;
 import org.atmosphere.websocket.WebSocket;
@@ -35,6 +35,8 @@ import java.io.IOException;
 public class WebSocketHub implements WebSocketHandler {
 
     private final Logger logger = LoggerFactory.getLogger(WebSocketHub.class);
+    private RabbitMQRouter router;
+    private String routingKey;
 
     @Override
     public void onByteMessage(WebSocket webSocket, byte[] data, int offset, int length) throws IOException {
@@ -42,14 +44,14 @@ public class WebSocketHub implements WebSocketHandler {
 
     @Override
     public void onTextMessage(final WebSocket webSocket, String data) throws IOException {
-        // The Broadcaster.getID() will return the email address.
-        Broadcaster userId = webSocket.resource().getBroadcaster();
-        logger.debug("Using Broadcaster {}", userId.getID());
-        userId.broadcast("Echoing data " + data);
+        router.deliver(routingKey, data);
     }
 
     @Override
     public void onOpen(final WebSocket webSocket) throws IOException {
+        AtmosphereResource r = webSocket.resource();
+        router = RabbitMQRouter.createOrGet(r.getAtmosphereConfig());
+        routingKey = router.register(r.getBroadcaster());
     }
 
     @Override
