@@ -60,15 +60,15 @@ public class WebSocketHub extends WebSocketHandlerAdapter {
             return;
         }
 
-        //Sanity check to make sure nobody is hacking the routingKey
         BroadcasterFactory f = r.getAtmosphereConfig().getBroadcasterFactory();
-        try {
-            f.get(routingKey);
-        } catch (IllegalStateException ex) {
-            logger.error("Routing Key is used for {}", routingKey);
-            webSocket.close();
-            return;
-        }
+//Sanity check to make sure nobody is hacking the routingKey
+//        try {
+//            f.get(routingKey);
+//        } catch (IllegalStateException ex) {
+//            logger.error("Routing Key is used for {}", routingKey);
+//            webSocket.close();
+//            return;
+//        }
         f.lookup(routingKey, true).addAtmosphereResource(r);
         router.register(r.getBroadcaster());
     }
