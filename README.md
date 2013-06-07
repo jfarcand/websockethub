@@ -1,4 +1,4 @@
-A simple [Atmosphere](https://github.com/Atmosphere/atmosphere)'s application that use RabbitMQ to dispatch messages amongs a cluster of WebSocket's Hub.
+A simple [Atmosphere](https://github.com/Atmosphere/atmosphere)'s application that use RabbitMQ to dispatch messages amongst a cluster of WebSocket's Hub.
 
 Can be deployed anywhere WebSockets are supported. Easiest is to bootrap it using [NettoSphere](https://github.com/Atmosphere/nettosphere).
 
