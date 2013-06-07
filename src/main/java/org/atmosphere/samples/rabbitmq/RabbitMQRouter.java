@@ -176,8 +176,9 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
                         Broadcaster b = mapper.map(message.getRoutingKey(), broadcasters);
                         if (b == null) {
                             logger.warn("No Broadcaster Found for Message {}", message);
+                        } else {
+                            b.broadcast(message.getMessage());
                         }
-                        b.broadcast(message.getMessage());
                     } catch (Exception ex) {
                         logger.error("", ex);
                         logger.error("Unable to decode {}", new String(body));
