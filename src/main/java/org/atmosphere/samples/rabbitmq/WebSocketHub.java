@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Jeanfrancois Arcand
+ * Copyright 2013 Jeanfrancois Arcand
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -60,15 +60,18 @@ public class WebSocketHub extends WebSocketHandlerAdapter {
             return;
         }
 
+        //Sanity check to make sure nobody is hacking the routingKey
         BroadcasterFactory f = r.getAtmosphereConfig().getBroadcasterFactory();
-//Sanity check to make sure nobody is hacking the routingKey
-//        try {
-//            f.get(routingKey);
-//        } catch (IllegalStateException ex) {
-//            logger.error("Routing Key is used for {}", routingKey);
-//            webSocket.close();
-//            return;
-//        }
+        if (r.getAtmosphereConfig().getInitParameter("WebSocketHub.checkSecurity") != null) {
+            try {
+                f.get(routingKey);
+            } catch (IllegalStateException ex) {
+                logger.error("Routing Key is used for {}", routingKey);
+                webSocket.close();
+                return;
+            }
+        }
+
         f.lookup(routingKey, true).addAtmosphereResource(r);
         router.register(r.getBroadcaster());
     }
