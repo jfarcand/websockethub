@@ -72,8 +72,7 @@ public class WebSocketHub extends WebSocketHandlerAdapter {
             }
         }
 
-        f.lookup(routingKey, true).addAtmosphereResource(r);
-        router.register(r.getBroadcaster());
+        router.register(f.lookup(routingKey, true).addAtmosphereResource(r));
     }
 
     String routingKey(WebSocket webSocket) {
