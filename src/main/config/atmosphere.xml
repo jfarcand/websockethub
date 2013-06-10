@@ -1,7 +1,7 @@
 <atmosphere-handlers>
     <!-- Since we are using annotation and we want to use init-param, we bind a dummy Handler that will allow us to use application-param -->
-    <atmosphere-handler context-root="/void"
-                        class-name="org.atmosphere.handler.AtmosphereHandlerAdapter">
+    <atmosphere-handler context-root="/"
+                        class-name="@ManagedService">
         <applicationConfig>
             <param-name>org.atmosphere.samples.rabbitmq.RabbitMQRouter.exchangeName</param-name>
             <param-value>atmosphere.all</param-value>
