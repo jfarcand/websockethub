@@ -169,7 +169,7 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
 
             queueName = channel.queueDeclare().getQueue();
             for (String k : amqRoutingKey) {
-                channel.queueUnbind(queueName, exchangeName, k);
+                channel.queueBind(queueName, exchangeName, k);
             }
 
             logger.info("Create AMQP consumer on queue {}, for routing key {}", queueName, amqRoutingKey);
