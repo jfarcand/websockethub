@@ -27,6 +27,7 @@ import org.atmosphere.cpr.Broadcaster;
 import org.atmosphere.util.DefaultEndpointMapper;
 import org.atmosphere.util.EndpointMapper;
 import org.atmosphere.util.ExecutorsFactory;
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -189,14 +190,26 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
                     }
 
                     try {
-                        Message message = oMapper.readValue(body, Message.class);
+                        JsonNode rootNode = oMapper.readValue(body, JsonNode.class);
+                        String key = rootNode.get("routingKey").asText();
+                        if (key == null) {
+                            logger.error("Missing key {}", new String(body));
+                            return;
+                        }
+
+                        String message = rootNode.get("message").asText();
+
+                        if (message == null) {
+                            logger.error("Missing message {}", new String(body));
+                            return;
+                        }
 
                         // Retrieve the Broadcaster associated with this message
-                        Broadcaster b = mapper.map(message.getRoutingKey(), broadcasters);
+                        Broadcaster b = mapper.map(key, broadcasters);
                         if (b == null) {
                             logger.warn("No Broadcaster Found for Message {}", message);
                         } else {
-                            b.broadcast(message.getMessage());
+                            b.broadcast(message);
                         }
                     } catch (Exception ex) {
                         logger.error("", ex);
@@ -267,33 +280,4 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
         return this;
     }
 
-    public static final class Message {
-
-        public String routingKey;
-        public String message;
-
-        public Message() {
-        }
-
-        public Message(String routingKey, String message) {
-            this.routingKey = routingKey;
-            this.message = message;
-        }
-
-        private void setMessage(String message) {
-            this.message = message;
-        }
-
-        private void setRoutingKey(String routingKey) {
-            this.routingKey = routingKey;
-        }
-
-        private String getMessage() {
-            return message;
-        }
-
-        private String getRoutingKey() {
-            return routingKey;
-        }
-    }
 }
