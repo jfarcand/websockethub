@@ -7,8 +7,8 @@
         <version>5</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.atmosphere.nettosphere.samples</groupId>
-    <artifactId>nettosphere-chat</artifactId>
+    <groupId>org.atmosphere.samples</groupId>
+    <artifactId>websockethub</artifactId>
     <packaging>war</packaging>
     <version>1.0.0-SNAPSHOT</version>
     <name>WebSocketHub</name>
