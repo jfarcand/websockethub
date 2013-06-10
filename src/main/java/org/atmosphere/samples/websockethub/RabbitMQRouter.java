@@ -196,10 +196,10 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
                         throws IOException {
 
                     // Not for us.
-                    if (!amqRoutingKey.contains(envelope.getRoutingKey())) {
-                        logger.debug("Invalid RoutingKey {}. Available one {}", envelope.getRoutingKey(), amqRoutingKey);
-                        return;
-                    }
+//                    if (!amqRoutingKey.contains(envelope.getRoutingKey())) {
+//                        logger.debug("Invalid RoutingKey {}. Available one {}", envelope.getRoutingKey(), amqRoutingKey);
+//                        return;
+//                    }
 
                     try {
                         JsonNode rootNode = oMapper.readValue(body, JsonNode.class);
