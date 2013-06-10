@@ -197,7 +197,7 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
 
                     // Not for us.
                     if (!amqRoutingKey.contains(envelope.getRoutingKey())) {
-                        logger.debug("Skipping message");
+                        logger.debug("Invalid RoutingKey {}. Available one {}", envelope.getRoutingKey(), amqRoutingKey);
                         return;
                     }
 
@@ -214,6 +214,10 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
                         if (message == null) {
                             logger.error("Missing message {}", new String(body));
                             return;
+                        }
+
+                        if (message.isEmpty()) {
+                            message = rootNode.get("message").toString();
                         }
 
                         // Retrieve the Broadcaster associated with this message
