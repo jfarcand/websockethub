@@ -1,0 +1,89 @@
+#! /bin/sh
+#
+# chkconfig: - 55 45
+# description:  The NettoSphere service
+# processname: nettosphere
+# config: /etc/sysconfig/nettosphere
+# pidfile: /var/run/nettosphere/nettosphere.pid
+
+# Standard LSB functions
+#. /lib/lsb/init-functions
+
+# Source function library.
+. /etc/init.d/functions
+
+
+prog="nettosphere"
+
+if [ -f /etc/sysconfig/$prog ];then
+        . /etc/sysconfig/$prog
+fi
+
+# Check that networking is up.
+. /etc/sysconfig/network
+
+if [ "$NETWORKING" = "no" ]
+then
+        exit 0
+fi
+
+RETVAL=0
+
+start () {
+        echo -n $"Starting $prog: "
+        # insure that /var/run/$prog has proper permissions
+    if [ "`stat -c %U /var/run/$prog`" != "$USER" ]; then
+        chown $USER /var/run/$prog
+    fi
+    
+		chown -R $USER ${NETTOSPHERE_DIR}
+		chgrp -R $USER ${NETTOSPHERE_DIR}
+    
+        runuser - $USER -c "${JAVA_EXEC} -DSTART=${START_FILE} ${JAVA_OPTS} -jar ${APP_DIR}/nettosphere.jar " > ${APP_DIR}/logs/stdout.txt 2>/dev/null &
+
+        RETVAL=$!
+        echo $RETVAL > /var/run/$prog/$prog.pid
+        echo
+        [ $RETVAL -gt 0 ] && touch /var/lock/subsys/$prog
+        echo Started $prog with PID $RETVAL
+}
+stop () {
+        echo -n $"Stopping $prog: "
+        killproc -p /var/run/$prog/$prog.pid /usr/bin/$prog
+        RETVAL=$?
+        echo
+        if [ $RETVAL -eq 0 ] ; then
+            rm -f /var/lock/subsys/$prog
+            rm -f /var/run/$prog.pid
+        fi
+}
+
+restart () {
+        stop
+        start
+}
+
+
+# See how we were called.
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  status)
+        status $prog
+        ;;
+  restart|reload|force-reload)
+        restart
+        ;;
+  condrestart)
+        [ -f /var/lock/subsys/$prog ] && restart || :
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|status|restart|reload|force-reload|condrestart}"
+        exit 1
+esac
+
+exit $?
