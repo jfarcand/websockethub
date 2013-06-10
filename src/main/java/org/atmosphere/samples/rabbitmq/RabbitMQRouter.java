@@ -280,4 +280,33 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
         return this;
     }
 
+    public static final class Message {
+
+        public String routingKey;
+        public String message;
+
+        public Message() {
+        }
+
+        public Message(String routingKey, String message) {
+            this.routingKey = routingKey;
+            this.message = message;
+        }
+
+        private void setMessage(String message) {
+            this.message = message;
+        }
+
+        private void setRoutingKey(String routingKey) {
+            this.routingKey = routingKey;
+        }
+
+        private String getMessage() {
+            return message;
+        }
+
+        private String getRoutingKey() {
+            return routingKey;
+        }
+    }
 }
