@@ -48,6 +48,7 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
     public static final String PARAM_EXCHANGE_TYPE = RabbitMQRouter.class.getName() + ".exchange";
     public static final String PARAM_VHOST = RabbitMQRouter.class.getName() + ".vhost";
     public static final String PARAM_PORT = RabbitMQRouter.class.getName() + ".port";
+    public static final String EXCHANGE_NAME = RabbitMQRouter.class.getName() + ".exchangeName";
 
     private final ConnectionFactory connectionFactory;
     private final Connection connection;
@@ -96,7 +97,7 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
             password = "guest";
         }
 
-        exchangeName = config.getInitParameter(PARAM_PASS);
+        exchangeName = config.getInitParameter(EXCHANGE_NAME);
         if (exchangeName == null) {
             exchangeName = "atmosphere." + exchange;
         }
