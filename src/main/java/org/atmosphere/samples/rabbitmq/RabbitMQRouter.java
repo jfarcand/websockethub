@@ -106,7 +106,7 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
         }
 
         s = config.getInitParameter(ROUTING_KEY);
-        if (s == null) {
+        if (s != null) {
             String[] rk = s.split(",");
             for (String r : rk) {
                 amqRoutingKey(r);
