@@ -32,6 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -51,7 +53,7 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
     private final Connection connection;
     private final Channel channel;
     private String exchange;
-    private String amqRoutingKey = "atmosphere.all";
+    private final List<String> amqRoutingKey = new LinkedList<String>();
     private String queueName;
     private String consumerTag;
     private String exchangeName;
@@ -94,7 +96,12 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
             password = "guest";
         }
 
-        exchangeName = "atmosphere." + exchange;
+        exchangeName = config.getInitParameter(PARAM_PASS);
+        if (exchangeName == null) {
+            exchangeName = "atmosphere." + exchange;
+        }
+
+        amqRoutingKey("atmosphere.all");
         try {
             logger.debug("Create Connection Factory");
             connectionFactory = new ConnectionFactory();
@@ -136,7 +143,10 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
     }
 
     public RabbitMQRouter deliver(String broadcasterRoutingKey, String message) {
-        return deliver(amqRoutingKey, broadcasterRoutingKey, message);
+        for (String k : amqRoutingKey) {
+            deliver(k, broadcasterRoutingKey, message);
+        }
+        return this;
     }
 
     private void routeIn() {
@@ -149,13 +159,17 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
 
             if (queueName != null) {
                 logger.debug("Delete queue {}", queueName);
-                channel.queueUnbind(queueName, exchangeName, amqRoutingKey);
+                for (String k : amqRoutingKey) {
+                    channel.queueUnbind(queueName, exchangeName, k);
+                }
                 channel.queueDelete(queueName);
                 queueName = null;
             }
 
             queueName = channel.queueDeclare().getQueue();
-            channel.queueBind(queueName, exchangeName, amqRoutingKey);
+            for (String k : amqRoutingKey) {
+                channel.queueUnbind(queueName, exchangeName, k);
+            }
 
             logger.info("Create AMQP consumer on queue {}, for routing key {}", queueName, amqRoutingKey);
 
@@ -168,7 +182,7 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
                         throws IOException {
 
                     // Not for us.
-                    if (!envelope.getRoutingKey().equalsIgnoreCase(amqRoutingKey)) {
+                    if (!amqRoutingKey.contains(envelope.getRoutingKey())) {
                         logger.debug("Skipping message");
                         return;
                     }
@@ -248,7 +262,7 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
     }
 
     public RabbitMQRouter amqRoutingKey(String amqRoutingKey) {
-        this.amqRoutingKey = amqRoutingKey;
+        this.amqRoutingKey.add(amqRoutingKey);
         return this;
     }
 
@@ -257,7 +271,8 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
         public String routingKey;
         public String message;
 
-        public Message(){}
+        public Message() {
+        }
 
         public Message(String routingKey, String message) {
             this.routingKey = routingKey;
