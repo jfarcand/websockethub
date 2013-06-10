@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.atmosphere.samples.rabbitmq;
+package org.atmosphere.samples.websockethub;
 
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;

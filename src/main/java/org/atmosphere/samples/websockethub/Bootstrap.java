@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.atmosphere.samples.rabbitmq;
+package org.atmosphere.samples.websockethub;
 
 import org.atmosphere.nettosphere.Config;
 import org.atmosphere.nettosphere.Nettosphere;
@@ -25,7 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class NettoSphereBootstrap {
+public class Bootstrap {
 
     private static final Logger logger = LoggerFactory.getLogger(Nettosphere.class);
 
