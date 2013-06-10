@@ -39,7 +39,7 @@ start () {
 		chown -R $USER ${NETTOSPHERE_DIR}
 		chgrp -R $USER ${NETTOSPHERE_DIR}
     
-        runuser - $USER -c "${JAVA_EXEC} -DSTART=${START_FILE} ${JAVA_OPTS} -jar ${APP_DIR}/nettosphere.jar " > ${APP_DIR}/logs/stdout.txt 2>/dev/null &
+        runuser - $USER -c "${JAVA_EXEC} -DSTART=${START_FILE} ${JAVA_OPTS} -cp ${APP_DIR}/lib/* -jar org.atmosphere.samples.rabbitmq.NettoSphereBootstrap " > ${APP_DIR}/logs/stdout.txt 2>/dev/null &
 
         RETVAL=$!
         echo $RETVAL > /var/run/$prog/$prog.pid
