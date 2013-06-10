@@ -8,8 +8,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.atmosphere.samples</groupId>
-    <artifactId>websockethub</artifactId>
-    <packaging>war</packaging>
+    <artifactId>atmosphere-websockethub</artifactId>
+    <packaging>jar</packaging>
     <version>1.0.0-SNAPSHOT</version>
     <name>WebSocketHub</name>
     <url>https://github.com/jfarcand/websockethub</url>
@@ -23,24 +23,6 @@
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>jetty-maven-plugin</artifactId>
-                <version>8.1.9.v20130131</version>
-                <configuration>
-                    <webAppSourceDirectory>${project.build.directory}/${project.name}</webAppSourceDirectory>
-                    <scanIntervalSeconds>1</scanIntervalSeconds>
-                    <webAppConfig>
-                        <contextPath>/</contextPath>
-                    </webAppConfig>
-                    <connectors>
-                        <connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
-                            <port>8080</port>
-                            <maxIdleTime>60000</maxIdleTime>
-                        </connector>
-                    </connectors>
                 </configuration>
             </plugin>
             <plugin>
