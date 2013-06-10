@@ -50,7 +50,7 @@ public class RabbitMQRouter implements AtmosphereConfig.ShutdownHook {
     public static final String PARAM_VHOST = RabbitMQRouter.class.getName() + ".vhost";
     public static final String PARAM_PORT = RabbitMQRouter.class.getName() + ".port";
     public static final String EXCHANGE_NAME = RabbitMQRouter.class.getName() + ".exchangeName";
-    public static final String ROUTING_KEY = RabbitMQRouter.class.getName() + ".routingKey";
+    public static final String ROUTING_KEY = RabbitMQRouter.class.getName() + ".routingKeys";
 
 
     private final ConnectionFactory connectionFactory;
