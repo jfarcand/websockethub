@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
@@ -29,9 +30,13 @@ public class NettoSphereBootstrap {
     private static final Logger logger = LoggerFactory.getLogger(Nettosphere.class);
 
     public static void main(String[] args) throws IOException {
+        String basePath = new File(".").getAbsolutePath();
         Config.Builder b = new Config.Builder();
         b.resource(WebSocketHub.class)
-                .port(8080).host("127.0.0.1").build();
+                .port(8080)
+                .configFile(basePath.substring(0, basePath.length() - 1) + "src/main/config/atmosphere.xml")
+                .host("127.0.0.1")
+                .build();
         Nettosphere s = new Nettosphere.Builder().config(b.build()).build();
         s.start();
         String a = "";
